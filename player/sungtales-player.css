@@ -1,0 +1,439 @@
+/* Sung Tales player. Loaded next to sungtales-player.js.
+   The verse text keeps the site's own classes; this file only adds
+   the bilingual layout, the highlight, and the fixed bar. */
+
+.st-layout {
+  width: 100%;
+  min-width: 0;
+  color: #111;
+  font-family: "Source Serif 4", Georgia, serif;
+}
+
+.st-toolbar {
+  position: sticky;
+  top: 100px;
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  align-items: baseline;
+  padding: 8px 0 12px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+.st-unclip { overflow: clip !important; }
+
+.st-toolbar button {
+  margin: 0;
+  padding: 4px 0;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 1.35rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.st-toolbar button[aria-checked="true"] {
+  font-weight: 600;
+  border-bottom-color: #111;
+}
+
+.st-toolbar button:focus-visible,
+.st-verse-play:focus-visible,
+.st-share:focus-visible,
+.st-dock button:focus-visible,
+.st-dock a:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 2px;
+}
+
+.st-colheads {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) minmax(0, 1fr) auto;
+  column-gap: 12px;
+  padding: 10px 4px 2px;
+  color: #666;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.st-colhead.st-ku { grid-column: 2; }
+.st-colhead.st-en { grid-column: 3; }
+
+.st-rows { width: 100%; }
+
+.st-row {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) minmax(0, 1fr) auto;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: start;
+  padding: 5px 4px;
+  border-bottom: 1px solid #f2f2f2;
+  scroll-margin-top: 160px;
+  scroll-margin-bottom: 180px;
+}
+
+.st-verse-play { grid-column: 1; grid-row: 1; }
+.st-ku { grid-column: 2; grid-row: 1; }
+.st-en { grid-column: 3; grid-row: 1; }
+.st-share { grid-column: 4; grid-row: 1; }
+.st-meta { grid-column: 2 / 4; grid-row: 2; }
+
+.st-label-row {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  padding: 16px 4px 4px calc(2.75rem + 12px);
+  border-bottom: none;
+}
+
+.st-label-row .st-ku { grid-column: 1; }
+.st-label-row .st-en { grid-column: 2; }
+
+.st-label-row .paragraph-20px-regular {
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.st-layout[data-view="ku"] .st-en,
+.st-layout[data-view="en"] .st-ku,
+.st-layout[data-view="ku"] .st-colhead.st-en,
+.st-layout[data-view="en"] .st-colhead.st-ku {
+  display: none;
+}
+
+.st-layout[data-view="ku"] .st-row,
+.st-layout[data-view="en"] .st-row,
+.st-layout[data-view="ku"] .st-colheads,
+.st-layout[data-view="en"] .st-colheads {
+  grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+}
+
+.st-layout[data-view="ku"] .st-ku,
+.st-layout[data-view="en"] .st-en,
+.st-layout[data-view="ku"] .st-colhead.st-ku,
+.st-layout[data-view="en"] .st-colhead.st-en {
+  grid-column: 2;
+}
+
+.st-layout[data-view="ku"] .st-share,
+.st-layout[data-view="en"] .st-share {
+  grid-column: 3;
+}
+
+.st-layout[data-view="ku"] .st-meta,
+.st-layout[data-view="en"] .st-meta {
+  grid-column: 2 / 3;
+}
+
+.st-layout[data-view="ku"] .st-label-row,
+.st-layout[data-view="en"] .st-label-row {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.st-layout[data-view="ku"] .st-label-row .st-ku,
+.st-layout[data-view="en"] .st-label-row .st-en {
+  grid-column: 1;
+}
+
+.st-layout[data-view="both"] .st-en .line-number {
+  display: none;
+}
+
+.st-col { min-width: 0; }
+.st-row:not(.st-label-row) .st-col { cursor: pointer; }
+
+.st-layout .line,
+.st-layout .line-content-wrapper,
+.st-layout .line-dropdown,
+.st-layout .line-text,
+.st-layout .paragraph-20px-regular,
+.st-layout .paragraph-18px-regular {
+  max-width: none;
+  min-width: 0;
+}
+
+.st-layout .dropdown-toggle-2.w-dropdown-toggle {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  white-space: normal;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.st-layout .w-dropdown {
+  display: block;
+  width: 100%;
+  margin: 0;
+  z-index: auto;
+}
+
+.st-layout .w-dropdown-list.w--open {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  width: 100%;
+  min-width: 0;
+}
+
+.st-verse-play,
+.st-share {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px solid #111;
+  border-radius: 999px;
+  background: #fff;
+  color: #111;
+  font: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.st-verse-play { width: 40px; padding: 0; }
+
+.st-share.is-copied {
+  background: #ffea6b;
+}
+
+.st-meta {
+  display: none;
+  padding-bottom: 4px;
+  color: #555;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+}
+
+html.st-review-on .st-meta { display: block; }
+
+/* Only the Ku Waru verse is highlighted, not the translation (Camila,
+   2026-11-03). In the English-only view the English line is, so the
+   reader can still follow. Padding offset by margin: no layout shift. */
+.st-row:not(.st-label-row) .st-col {
+  padding: 2px 6px;
+  margin: -2px -6px;
+  border-radius: 3px;
+}
+
+.st-row.st-current .st-ku,
+.st-layout[data-view="en"] .st-row.st-current .st-en {
+  background: #fff4a8;
+}
+
+.st-row.st-shared {
+  outline: 2px solid #111;
+  outline-offset: -2px;
+}
+
+html.st-review-on .st-row.st-flagged {
+  border-left: 4px solid #c45500;
+  background: #fff6ee;
+}
+
+html.st-review-on .st-row.st-editing {
+  outline: 2px dashed #c45500;
+  outline-offset: -2px;
+}
+
+.w-tabs.st-enhanced > .w-tab-menu,
+.w-tabs.st-enhanced > .w-tab-content {
+  display: none !important;
+}
+
+.st-dock {
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #fff;
+  border-top: 1px solid #ddd;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+  color: #111;
+  font-family: "Source Serif 4", Georgia, serif;
+}
+
+.st-review {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  padding: 8px 16px;
+  background: #fffdf2;
+  border-bottom: 1px solid #ead98a;
+}
+
+.st-dock [hidden] { display: none !important; }
+
+.st-review-count,
+.st-review-readout,
+.st-review-help {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.st-review-count { font-weight: 600; }
+.st-review-help { flex-basis: 100%; color: #555; }
+
+.st-review-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.st-review-controls button,
+.st-bar button,
+.st-continue {
+  box-sizing: border-box;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid #111;
+  border-radius: 999px;
+  background: #fff;
+  color: #111;
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.st-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  padding: 8px 16px;
+}
+
+.st-play {
+  width: 44px;
+  padding: 0;
+  background: #ffea6b;
+}
+
+.st-seek {
+  flex: 1 1 140px;
+  min-width: 80px;
+  height: 44px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  accent-color: #111;
+}
+
+.st-time {
+  min-width: 7.5em;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95rem;
+}
+
+.st-repeat[aria-pressed="true"],
+.st-continue {
+  background: #ffea6b;
+  font-weight: 600;
+}
+
+.st-continue[hidden] { display: none !important; }
+
+.st-continue.is-ready {
+  outline: 2px solid #111;
+  outline-offset: 1px;
+}
+
+.st-download {
+  color: #111;
+  font-size: 0.95rem;
+}
+
+.st-status {
+  flex-basis: 100%;
+  margin: 0;
+  color: #8a3b00;
+  font-size: 0.85rem;
+}
+
+.st-status:empty { display: none; }
+
+.st-audio-el {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 991px) {
+  .st-colheads { display: none; }
+
+  .st-dock { bottom: 60px; padding-bottom: 0; }
+
+  .st-row,
+  .st-layout[data-view="ku"] .st-row,
+  .st-layout[data-view="en"] .st-row {
+    grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+  }
+
+  .st-verse-play { grid-column: 1; grid-row: 1 / span 2; }
+  .st-ku { grid-column: 2; grid-row: 1; }
+  .st-en { grid-column: 2; grid-row: 2; }
+  .st-share { grid-column: 3; grid-row: 1 / span 2; align-self: start; }
+  .st-meta { grid-column: 2; grid-row: 3; }
+
+  .st-layout[data-view="ku"] .st-verse-play,
+  .st-layout[data-view="en"] .st-verse-play,
+  .st-layout[data-view="ku"] .st-share,
+  .st-layout[data-view="en"] .st-share,
+  .st-layout[data-view="ku"] .st-ku,
+  .st-layout[data-view="en"] .st-en {
+    grid-row: 1;
+  }
+
+  .st-layout[data-view="both"] .st-en { color: #666; }
+
+  .st-label-row,
+  .st-layout[data-view="ku"] .st-label-row,
+  .st-layout[data-view="en"] .st-label-row {
+    grid-template-columns: minmax(0, 1fr);
+    padding-left: calc(2.75rem + 12px);
+  }
+
+  .st-label-row .st-ku,
+  .st-label-row .st-en,
+  .st-layout[data-view="ku"] .st-label-row .st-ku,
+  .st-layout[data-view="en"] .st-label-row .st-en {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .st-layout[data-view="both"] .st-mirror { display: none; }
+
+  /* On phones the nav, the player and the site's back-to-top bar already
+     take a third of the screen; the toggle stays at the top of the story. */
+  .st-toolbar { position: static; gap: 8px 18px; }
+  .st-toolbar button { font-size: 1.15rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .st-row { scroll-margin-top: 160px; }
+}
