@@ -413,6 +413,36 @@
     var download = el("a", "st-download", "Download");
     download.href = audioUrl;
     download.setAttribute("download", fileName(audioUrl));
+    // The audio is on another site (GitHub Pages), where browsers ignore the
+    // download attribute and open the file over the story page. Fetch it and
+    // save it instead. If that fails, open it in a new tab so the page stays.
+    download.target = "_blank";
+    download.rel = "noopener";
+    download.addEventListener("click", function (event) {
+      if (!window.fetch || event.metaKey || event.ctrlKey || event.shiftKey) return;
+      event.preventDefault();
+      if (download.getAttribute("aria-busy") === "true") return;
+      download.setAttribute("aria-busy", "true");
+      download.textContent = "Downloading…";
+      fetch(audioUrl).then(function (response) {
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        return response.blob();
+      }).then(function (blob) {
+        var url = URL.createObjectURL(blob);
+        var saver = document.createElement("a");
+        saver.href = url;
+        saver.download = fileName(audioUrl);
+        document.body.appendChild(saver);
+        saver.click();
+        saver.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+      }).catch(function () {
+        window.open(audioUrl, "_blank", "noopener");
+      }).then(function () {
+        download.removeAttribute("aria-busy");
+        download.textContent = "Download";
+      });
+    });
     var continueButton = el("button", "st-continue", "Keep listening");
     continueButton.type = "button";
     continueButton.hidden = true;
