@@ -318,6 +318,29 @@
     document.documentElement.dataset.stText = textOk ? "ok" : "changed";
     if (!textOk) console.error("Sung Tales player: story markup changed while building the layout.");
 
+    var parkedNotes = [];
+    var noteFitters = [];
+
+    function fitOpenNotes() {
+      noteFitters.forEach(function (item) {
+        var list = item.list;
+        if (!list) return;
+        if (!list.classList.contains("w--open")) {
+          list.style.width = "";
+          list.style.marginLeft = "";
+          return;
+        }
+        list.style.width = "";
+        list.style.marginLeft = "";
+        var hostR = item.host.getBoundingClientRect();
+        var listR = list.getBoundingClientRect();
+        list.style.marginLeft = (hostR.left - listR.left) + "px";
+        list.style.width = hostR.width + "px";
+      });
+    }
+
+    window.addEventListener("resize", fitOpenNotes);
+
     setView(layout.getAttribute("data-view"));
 
     var audio = document.createElement("audio");
@@ -1121,8 +1144,67 @@
       });
     }
 
+    // Notes live in the English line. In the Ku Waru-only view that line is
+    // hidden, so park the whole dropdown (icon + note) after the Ku Waru
+    // verse. A verse that already has its own Ku Waru note is left alone.
+    // The paragraph markup is not touched. Restored in the other views.
+    function restoreParkedNotes() {
+      parkedNotes.forEach(function (item) {
+        if (item.observer) item.observer.disconnect();
+        item.dropdown.classList.remove("st-parked-note");
+        item.host.classList.remove("st-note-host");
+        if (item.list) {
+          item.list.classList.remove("w--open");
+          item.list.style.width = "";
+          item.list.style.marginLeft = "";
+        }
+        if (item.toggle) {
+          item.toggle.classList.remove("w--open");
+          if (item.toggle.hasAttribute("aria-expanded")) item.toggle.setAttribute("aria-expanded", "false");
+        }
+        if (item.next && item.next.parentNode === item.parent) item.parent.insertBefore(item.dropdown, item.next);
+        else item.parent.appendChild(item.dropdown);
+      });
+      parkedNotes = [];
+      noteFitters = [];
+    }
+
+    function parkNotesForKu() {
+      restoreParkedNotes();
+      Array.prototype.forEach.call(layout.querySelectorAll(".st-row"), function (row) {
+        var kuCol = row.querySelector(":scope > .st-col.st-ku");
+        var enCol = row.querySelector(":scope > .st-col.st-en");
+        if (!kuCol || !enCol) return;
+        if (kuCol.querySelector(".line-info-icon")) return;
+        var dropdown = enCol.querySelector(".line-dropdown.w-dropdown");
+        if (!dropdown || !dropdown.querySelector(".line-info-icon")) return;
+        var host = kuCol.querySelector(".line .line-paragraphs");
+        if (!host || host.closest(".w-dropdown-list")) return;
+        var list = dropdown.querySelector(".w-dropdown-list");
+        var entry = {
+          dropdown: dropdown,
+          parent: dropdown.parentNode,
+          next: dropdown.nextSibling,
+          host: host,
+          list: list,
+          toggle: dropdown.querySelector(".w-dropdown-toggle")
+        };
+        if (list) {
+          entry.observer = new MutationObserver(fitOpenNotes);
+          entry.observer.observe(list, { attributes: true, attributeFilter: ["class"] });
+          noteFitters.push(entry);
+        }
+        parkedNotes.push(entry);
+        host.classList.add("st-note-host");
+        dropdown.classList.add("st-parked-note");
+        host.appendChild(dropdown);
+      });
+    }
+
     function setView(view) {
       if (view !== "ku" && view !== "en" && view !== "both") view = "both";
+      if (view === "ku") parkNotesForKu();
+      else restoreParkedNotes();
       layout.setAttribute("data-view", view);
       Object.keys(viewButtons).forEach(function (key) {
         viewButtons[key].setAttribute("aria-checked", key === view ? "true" : "false");

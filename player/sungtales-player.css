@@ -183,6 +183,50 @@
   min-width: 0;
 }
 
+/* Ku Waru-only: an English-only note is parked after the Ku Waru verse.
+   The dropdown stays intact so Webflow still opens and closes it. The English
+   sentence inside it is hidden; the "i" sits after the last Ku Waru word. */
+.st-layout .line-paragraphs.st-note-host {
+  display: block;
+}
+
+.st-layout .line-paragraphs.st-note-host > .paragraph-20px-regular,
+.st-layout .line-paragraphs.st-note-host > .paragraph-18px-regular {
+  display: inline;
+}
+
+.st-layout .st-parked-note.w-dropdown {
+  display: inline;
+  width: auto;
+  margin: 0 0 0 0.35em;
+  vertical-align: middle;
+}
+
+.st-layout .st-parked-note .dropdown-toggle-2.w-dropdown-toggle {
+  display: inline;
+  width: auto;
+  max-width: none;
+  white-space: normal;
+}
+
+.st-layout .st-parked-note .line-content {
+  display: inline-flex;
+  width: auto;
+  gap: 0;
+}
+
+.st-layout .st-parked-note .line-text {
+  display: none;
+}
+
+.st-layout .st-parked-note .line-info-icon {
+  cursor: pointer;
+}
+
+.st-layout .st-parked-note .w-dropdown-list.w--open {
+  box-sizing: border-box;
+}
+
 .st-verse-play,
 .st-share {
   box-sizing: border-box;
