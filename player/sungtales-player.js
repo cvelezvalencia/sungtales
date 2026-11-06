@@ -472,6 +472,7 @@
     var repeatOn = false;
     var loopN = null;
     var pinnedN = null;
+    var fromScratch = false;
     var highlightedN = null;
     var wantTime = null;
     var sliding = false;
@@ -587,6 +588,11 @@
     window.addEventListener("load", revealShare);
 
     fetch(syncUrl, { credentials: "same-origin" }).then(function (res) {
+      // A new story has no timings file yet: the sync tool starts it from zero.
+      if (res.status === 404 && reviewOn) {
+        fromScratch = true;
+        return blankSync();
+      }
       if (!res.ok) throw new Error(String(res.status));
       return res.json();
     }).then(applySync).catch(function () {
@@ -594,6 +600,17 @@
       if (reviewOn) readout.textContent = "Timings didn\u2019t load.";
       document.documentElement.dataset.stSync = "error";
     });
+
+    function blankSync() {
+      var ns = [];
+      rowByN.forEach(function (row, n) { ns.push({ n: n }); });
+      return {
+        slug: location.pathname.split("/").filter(Boolean).pop() || "story",
+        audio: fileName(audioUrl),
+        method: "manual, with the sync tool",
+        verses: ns
+      };
+    }
 
     function applySync(data) {
       syncData = data;
@@ -630,6 +647,11 @@
       }
       updateHighlight();
       updateTimeLabel();
+      if (fromScratch) {
+        reviewCount.textContent = "New story: play the audio and press S as each verse begins. It moves on to the next verse by itself."
+          + (restored ? " Restored " + restored + " timed verse" + (restored > 1 ? "s" : "") + " from this browser." : "");
+        pinFirstUntimed();
+      }
       document.documentElement.dataset.stSync = "ok";
       document.documentElement.dataset.stVerses = String(rowByN.size);
     }
@@ -898,6 +920,25 @@
       if (!verse) return;
       pin(verse.n);
       setStart(verse, audio.currentTime);
+      if (fromScratch) afterScratchStart(verse);
+    }
+
+    // Starting a story from zero: this start closes the previous verse, unless
+    // it already has an end, and the tool moves on to the next verse.
+    function afterScratchStart(verse) {
+      var index = verses.indexOf(verse);
+      var before = index > 0 ? verses[index - 1] : null;
+      if (before && before.end == null && Number.isFinite(Number(before.start))) {
+        before.end = verse.start;
+        renderMeta(before);
+        markEdited();
+      }
+      if (index + 1 < verses.length) pin(verses[index + 1].n);
+    }
+
+    function pinFirstUntimed() {
+      var first = verses.find(function (v) { return v.start == null; });
+      if (first) pin(first.n);
     }
 
     function setEndNow() {
@@ -951,9 +992,11 @@
       Object.keys(edits).forEach(function (key) {
         var v = verseByN.get(Number(key));
         var e = edits[key];
-        if (!v || !Array.isArray(e) || v.start !== e[0] || v.end !== e[1]) return;
-        v.start = e[2];
-        v.end = e[3];
+        // Loose on purpose: a verse with no timing yet is undefined here and
+        // null in the saved edit.
+        if (!v || !Array.isArray(e) || v.start != e[0] || v.end != e[1]) return;
+        v.start = e[2] == null ? undefined : e[2];
+        v.end = e[3] == null ? undefined : e[3];
         count += 1;
       });
       return count;
@@ -1000,7 +1043,20 @@
 
     function exportSync() {
       if (!syncData) return;
-      var json = JSON.stringify(syncData, null, 1);
+      var output = syncData;
+      if (fromScratch) {
+        // The file a story keeps: every timed verse has an end, and the length is in it.
+        var duration = Number.isFinite(audio.duration) ? audio.duration : null;
+        output = JSON.parse(JSON.stringify(syncData));
+        if (duration != null) output.duration = Math.round(duration * 1000) / 1000;
+        output.verses.forEach(function (v, i) {
+          var next = output.verses[i + 1];
+          if (v.start == null || v.end != null) return;
+          if (next && next.start != null) v.end = next.start;
+          else if (duration != null) v.end = output.duration;
+        });
+      }
+      var json = JSON.stringify(output, null, 1);
       var blob = new Blob([json], { type: "application/json" });
       var link = document.createElement("a");
       var slug = syncData.slug || "story";
