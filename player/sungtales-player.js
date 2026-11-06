@@ -283,12 +283,14 @@
       row.addEventListener("mouseup", function (event) {
         var target = eventTarget(event);
         if (!target || target.closest(".line-info-icon, .info-icon-text")) return;
+        if (hitKuNoteMark(event)) return;
         if (target.closest(".w-dropdown-toggle")) event.stopPropagation();
       }, true);
       row.addEventListener("click", function (event) {
         var target = eventTarget(event);
         if (!target) return;
         if (target.closest(".st-verse-play, .st-share, .w-dropdown-list, .line-info-icon, .info-icon-text")) return;
+        if (hitKuNoteMark(event)) return;
         if (event.shiftKey || event.metaKey || event.ctrlKey || event.altKey) return;
         var sel = window.getSelection && window.getSelection();
         if (sel && !sel.isCollapsed && sel.anchorNode && row.contains(sel.anchorNode)) return;
@@ -1144,10 +1146,33 @@
       });
     }
 
+    // A Ku Waru note with no "i" uses the verse as the toggle. The icon is a
+    // CSS ::after, so a click on it has to be recognized by position. That
+    // click opens the note; a click on the words still seeks.
+    function hitKuNoteMark(event) {
+      if (layout.getAttribute("data-view") !== "ku") return false;
+      var target = eventTarget(event);
+      if (!target || !target.closest) return false;
+      var content = target.closest(".st-col.st-ku .w-dropdown-toggle > .line-content");
+      if (!content || content.querySelector(".line-info-icon")) return false;
+      var text = content.querySelector(":scope > .line-text");
+      if (!text) return false;
+      var gap = parseFloat(window.getComputedStyle(content).columnGap);
+      if (!isFinite(gap)) gap = 16;
+      var tr = text.getBoundingClientRect();
+      var size = 20;
+      var left = tr.right + gap;
+      var top = tr.top + Math.max(0, (tr.height - size) / 2);
+      var x = event.clientX;
+      var y = event.clientY;
+      return x >= left - 4 && x <= left + size + 4 && y >= top - 4 && y <= top + size + 4;
+    }
+
     // Notes live in the English line. In the Ku Waru-only view that line is
     // hidden, so park the whole dropdown (icon + note) after the Ku Waru
-    // verse. A verse that already has its own Ku Waru note is left alone.
-    // The paragraph markup is not touched. Restored in the other views.
+    // verse. A verse that already has its own Ku Waru note is left alone:
+    // its note opens from the "i" drawn on that toggle. The paragraph
+    // markup is not touched. Restored in the other views.
     function restoreParkedNotes() {
       parkedNotes.forEach(function (item) {
         if (item.observer) item.observer.disconnect();

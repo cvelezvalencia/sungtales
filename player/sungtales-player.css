@@ -227,6 +227,35 @@
   box-sizing: border-box;
 }
 
+/* These Ku Waru notes have no "i": the verse itself is the dropdown toggle.
+   Draw the icon in the Ku Waru-only view. The verse markup stays as it is. */
+.st-layout[data-view="ku"] .st-col.st-ku .w-dropdown-toggle:not(:has(.line-info-icon)) > .line-content > .line-text {
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 0;
+  max-width: calc(100% - 36px);
+}
+
+.st-layout[data-view="ku"] .st-col.st-ku .w-dropdown-toggle:not(:has(.line-info-icon)) > .line-content::after {
+  content: "i";
+  flex: 0 0 auto;
+  align-self: center;
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  border-radius: 10rem;
+  background-color: var(--main-yellow, #ffea6b);
+  color: #111;
+  font-family: "EB Garamond", "Source Serif 4", Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1em;
+  line-height: 20px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+}
+
 .st-verse-play,
 .st-share {
   box-sizing: border-box;
