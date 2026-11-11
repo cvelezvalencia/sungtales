@@ -9,17 +9,23 @@
   font-family: "EB Garamond", "Source Serif 4", Georgia, serif;
 }
 
-.st-toolbar {
+/* The language selector with the audio player right under it. Both stay
+   under the menu while the story scrolls (Camila, 2026-11-11). The script
+   sets `top` to the menu's real height; 100px is the site's menu. */
+.st-head {
   position: sticky;
   top: 100px;
   z-index: 40;
+  background: #fff;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.st-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 28px;
   align-items: baseline;
-  padding: 8px 0 12px;
-  background: #fff;
-  border-bottom: 1px solid #eee;
+  padding: 8px 0 4px;
 }
 
 .st-unclip { overflow: clip !important; }
@@ -75,8 +81,8 @@
   align-items: start;
   padding: 5px 4px;
   border-bottom: 1px solid #f2f2f2;
-  scroll-margin-top: 160px;
-  scroll-margin-bottom: 180px;
+  scroll-margin-top: var(--st-chrome, 240px);
+  scroll-margin-bottom: 80px;
 }
 
 .st-verse-play { grid-column: 1; grid-row: 1; }
@@ -278,6 +284,9 @@
 }
 
 .st-verse-play { width: 40px; padding: 0; }
+.st-verse-play .st-icon { width: 15px; height: 15px; margin-left: 2px; }
+
+.st-icon { display: block; flex: none; }
 
 .st-share.is-copied {
   background: #ffea6b;
@@ -329,16 +338,7 @@ html.st-review-on .st-row.st-editing {
 }
 
 .st-dock {
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  right: 0;
-  bottom: 0;
   box-sizing: border-box;
-  padding-bottom: env(safe-area-inset-bottom);
-  background: #fff;
-  border-top: 1px solid #ddd;
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
   color: #111;
   font-family: "EB Garamond", "Source Serif 4", Georgia, serif;
 }
@@ -348,9 +348,9 @@ html.st-review-on .st-row.st-editing {
   flex-wrap: wrap;
   gap: 6px 10px;
   align-items: center;
-  padding: 8px 16px;
+  padding: 8px 12px;
   background: #fffdf2;
-  border-bottom: 1px solid #ead98a;
+  border: 1px solid #ead98a;
 }
 
 .st-dock [hidden] { display: none !important; }
@@ -392,16 +392,41 @@ html.st-review-on .st-row.st-editing {
 .st-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 8px 14px;
   align-items: center;
-  padding: 8px 16px;
+  padding: 6px 0 10px;
 }
 
-.st-play {
-  width: 44px;
+/* Main play / pause: a black circle with a white icon, like the site's own
+   round back-to-top button. */
+.st-bar .st-play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  min-height: 48px;
   padding: 0;
-  background: #ffea6b;
+  border: none;
+  border-radius: 50%;
+  background: #000;
+  color: #fff;
+  transition: background-color 0.15s;
 }
+
+.st-bar .st-play:hover { background: #333; }
+.st-bar .st-play .st-icon { width: 22px; height: 22px; }
+.st-bar .st-play[aria-label="Play"] .st-icon { margin-left: 3px; }
+
+.st-bar .st-repeat,
+.st-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.st-bar .st-repeat .st-icon,
+.st-download .st-icon { width: 18px; height: 18px; }
 
 .st-seek {
   flex: 1 1 140px;
@@ -433,9 +458,13 @@ html.st-review-on .st-row.st-editing {
 }
 
 .st-download {
+  min-height: 44px;
   color: #111;
   font-size: 0.95rem;
+  text-decoration: none;
 }
+
+.st-download:hover .st-btn-text { text-decoration: underline; }
 
 .st-status {
   flex-basis: 100%;
@@ -458,8 +487,6 @@ html.st-review-on .st-row.st-editing {
 
 @media (max-width: 991px) {
   .st-colheads { display: none; }
-
-  .st-dock { bottom: 60px; padding-bottom: 0; }
 
   .st-row,
   .st-layout[data-view="ku"] .st-row,
@@ -501,12 +528,31 @@ html.st-review-on .st-row.st-editing {
 
   .st-layout[data-view="both"] .st-mirror { display: none; }
 
-  /* On phones the nav, the player and the site's back-to-top bar already
-     take a third of the screen; the toggle stays at the top of the story. */
-  .st-toolbar { position: static; gap: 8px 18px; }
+  .st-toolbar { gap: 8px 18px; padding-top: 6px; }
   .st-toolbar button { font-size: 1.15rem; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .st-row { scroll-margin-top: 160px; }
+/* Narrow phones: one row for the player. Repeat and Download show only
+   their icons (their names stay as labels for screen readers). */
+@media (max-width: 560px) {
+  .st-bar { flex-wrap: nowrap; gap: 8px; padding: 4px 0 8px; }
+  .st-bar .st-play { width: 44px; height: 44px; min-height: 44px; }
+  .st-bar .st-play .st-icon { width: 20px; height: 20px; }
+  .st-seek { flex: 1 1 auto; min-width: 60px; }
+  .st-time { min-width: 0; font-size: 0.85rem; white-space: nowrap; }
+  .st-btn-text { display: none; }
+  .st-bar .st-repeat,
+  .st-download {
+    flex: none;
+    justify-content: center;
+    width: 40px;
+    min-height: 40px;
+    padding: 0;
+    border-radius: 50%;
+  }
+  .st-download { border: 1px solid #111; box-sizing: border-box; height: 40px; }
+  .st-bar .st-continue,
+  .st-status { flex: none; }
+  .st-bar:has(.st-continue:not([hidden])),
+  .st-bar:has(.st-status:not(:empty)) { flex-wrap: wrap; }
 }

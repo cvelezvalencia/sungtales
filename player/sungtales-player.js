@@ -52,6 +52,18 @@
 
   var scriptEl = document.currentScript;
 
+  // Drawn icons, not text characters: iPhones and Macs show "▶" as a
+  // colour emoji, which didn't match the site (Camila, 2026-11-11).
+  function icon(body, filled) {
+    return '<svg class="st-icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"' +
+      (filled ? ' fill="currentColor">' : ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">') +
+      body + "</svg>";
+  }
+  var ICON_PLAY = icon('<path d="M8 5.2v13.6L19 12z"/>', true);
+  var ICON_PAUSE = icon('<path d="M6.5 5h4v14h-4zM13.5 5h4v14h-4z"/>', true);
+  var ICON_REPEAT = icon('<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>', false);
+  var ICON_DOWNLOAD = icon('<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>', false);
+
   function onReady() {
     var script = scriptEl || document.querySelector("script[data-sync]");
     if (!script) return;
@@ -201,7 +213,11 @@
       viewButtons[pair[0]] = button;
       button.addEventListener("click", function () { setView(pair[0]); });
     });
-    layout.appendChild(toolbar);
+    // The language selector and the audio player sit together under the
+    // menu and stay there while the story scrolls (Camila, 2026-11-11).
+    var head = el("div", "st-head");
+    head.appendChild(toolbar);
+    layout.appendChild(head);
 
     var heads = el("div", "st-colheads");
     heads.setAttribute("aria-hidden", "true");
@@ -247,7 +263,8 @@
       var row = el("div", "st-row");
       row.setAttribute("data-n", String(n));
       row.id = "st-verse-" + n;
-      var play = el("button", "st-verse-play", "\u25B6");
+      var play = el("button", "st-verse-play");
+      play.innerHTML = ICON_PLAY;
       play.type = "button";
       play.setAttribute("aria-label", "Play verse " + n + " only");
       var kuCol = el("div", "st-col st-ku");
@@ -256,7 +273,7 @@
       var enLine = enVerses.get(n) || null;
       if (kuLine) kuCol.appendChild(kuLine);
       if (enLine) enCol.appendChild(enLine);
-      var share = el("a", "st-share", "Share");
+      var share = el("a", "st-share", "share");
       share.setAttribute("aria-label", "Copy link to verse " + n);
       var meta = el("div", "st-meta");
       row.appendChild(play);
@@ -396,7 +413,8 @@
     var bar = el("div", "st-bar");
     bar.setAttribute("role", "region");
     bar.setAttribute("aria-label", "Audio player");
-    var playButton = el("button", "st-play", "\u25B6");
+    var playButton = el("button", "st-play");
+    playButton.innerHTML = ICON_PLAY;
     playButton.type = "button";
     playButton.setAttribute("aria-label", "Play");
     var seek = el("input", "st-seek");
@@ -407,10 +425,17 @@
     seek.value = "0";
     seek.setAttribute("aria-label", "Seek");
     var timeEl = el("span", "st-time", "0:00 / 0:00");
-    var repeatButton = el("button", "st-repeat", "Repeat verse");
+    var repeatButton = el("button", "st-repeat");
+    repeatButton.innerHTML = ICON_REPEAT + '<span class="st-btn-text">Repeat verse</span>';
     repeatButton.type = "button";
+    repeatButton.title = "Repeat verse";
+    repeatButton.setAttribute("aria-label", "Repeat verse");
     repeatButton.setAttribute("aria-pressed", "false");
-    var download = el("a", "st-download", "Download");
+    var download = el("a", "st-download");
+    download.innerHTML = ICON_DOWNLOAD + '<span class="st-btn-text">Download</span>';
+    download.title = "Download the audio";
+    download.setAttribute("aria-label", "Download the audio");
+    var downloadText = download.querySelector(".st-btn-text");
     download.href = audioUrl;
     download.setAttribute("download", fileName(audioUrl));
     // The audio is on another site (GitHub Pages), where browsers ignore the
@@ -423,7 +448,7 @@
       event.preventDefault();
       if (download.getAttribute("aria-busy") === "true") return;
       download.setAttribute("aria-busy", "true");
-      download.textContent = "Downloading…";
+      downloadText.textContent = "Downloading…";
       fetch(audioUrl).then(function (response) {
         if (!response.ok) throw new Error("HTTP " + response.status);
         return response.blob();
@@ -440,7 +465,7 @@
         window.open(audioUrl, "_blank", "noopener");
       }).then(function () {
         download.removeAttribute("aria-busy");
-        download.textContent = "Download";
+        downloadText.textContent = "Download";
       });
     });
     var continueButton = el("button", "st-continue", "Keep listening");
@@ -458,7 +483,7 @@
     bar.appendChild(statusEl);
     dock.appendChild(review);
     dock.appendChild(bar);
-    document.body.appendChild(dock);
+    head.appendChild(dock);
 
     var syncData = null;
     var verses = [];
@@ -538,6 +563,9 @@
         if (playingRow && !comfortablyVisible(playingRow)) scrollRow(playingRow, false, false);
       }
     });
+    // Show "pause" as soon as playback is asked for, not only once the audio
+    // has buffered: on a slow phone connection that can take seconds.
+    audio.addEventListener("play", updatePlayButton);
     audio.addEventListener("pause", function () {
       clearTimeout(boundaryTimer);
       updatePlayButton();
@@ -571,10 +599,9 @@
     }, { passive: true });
 
     var resize = new ResizeObserver(applyPad);
-    resize.observe(dock);
+    resize.observe(head);
     applyPad();
     window.addEventListener("resize", applyPad);
-    // webflow.js may add its badge after this runs.
     window.addEventListener("load", applyPad);
     setTimeout(applyPad, 1500);
 
@@ -1101,7 +1128,7 @@
 
     function updatePlayButton() {
       var playing = !audio.paused && !audio.ended;
-      playButton.textContent = playing ? "\u275A\u275A" : "\u25B6";
+      playButton.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
       playButton.setAttribute("aria-label", playing ? "Pause" : "Play");
     }
 
@@ -1112,19 +1139,28 @@
       scrollRow(row, false, false);
     }
 
-    function chromeTop() {
+    function navBottom() {
       var nav = document.querySelector(".nav-component");
-      var navH = nav ? nav.getBoundingClientRect().height : 0;
-      var barH = 0;
-      var rect = toolbar.getBoundingClientRect();
-      if (rect.bottom > navH && rect.top < navH + rect.height + 4) barH = rect.height;
-      return navH + barH + 8;
+      if (!nav) return 0;
+      var b = nav.getBoundingClientRect().bottom;
+      return b > 0 ? b : 0;
+    }
+
+    // Where text starts under the menu and the sticky selector + player.
+    // While the story is scrolled, the head is stuck right under the menu.
+    function chromeTop() {
+      return navBottom() + head.getBoundingClientRect().height + 8;
+    }
+
+    // The site's back-to-top bar covers the bottom 60 px on tablets and phones.
+    function chromeBottom() {
+      return window.matchMedia("(max-width: 991px)").matches ? 60 : 0;
     }
 
     function comfortablyVisible(node) {
       var rect = node.getBoundingClientRect();
       var top = chromeTop();
-      var limit = dock.getBoundingClientRect().top - 8;
+      var limit = window.innerHeight - chromeBottom() - 8;
       if (rect.height >= limit - top) return rect.top >= top - 4 && rect.top <= top + 48;
       return rect.top >= top && rect.bottom <= limit;
     }
@@ -1224,7 +1260,7 @@
       copyText(url.toString()).then(function () {
         link.classList.add("is-copied");
         var label = link.textContent;
-        link.textContent = "Copied";
+        link.textContent = "copied";
         setTimeout(function () {
           link.textContent = label;
           link.classList.remove("is-copied");
@@ -1323,19 +1359,12 @@
       try { sessionStorage.setItem("sungtales-view", view); } catch (e) { /* private mode */ }
     }
 
+    // The head sticks right under the menu, whatever the menu's height. Rows
+    // reached by a #st-verse-n link land below the head, not under it.
     function applyPad() {
-      var lift = window.matchMedia("(max-width: 991px)").matches ? 60 : 0;
-      document.body.style.paddingBottom = (dock.getBoundingClientRect().height + lift + 16) + "px";
-      // Sites without a paid plan get a fixed "Made in Webflow" badge in the
-      // bottom-right corner, over the bar's last buttons. Keep them clear of it.
-      var pad = 16;
-      var badge = document.querySelector(".w-webflow-badge");
-      if (badge) {
-        var b = badge.getBoundingClientRect();
-        var d = bar.getBoundingClientRect();
-        if (b.width && b.top < d.bottom && b.bottom > d.top) pad = Math.max(pad, Math.ceil(window.innerWidth - b.left + 8));
-      }
-      bar.style.paddingRight = pad + "px";
+      var navH = navBottom();
+      head.style.top = navH + "px";
+      layout.style.setProperty("--st-chrome", Math.ceil(navH + head.getBoundingClientRect().height + 8) + "px");
     }
   }
 
