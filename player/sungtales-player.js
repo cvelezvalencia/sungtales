@@ -4,7 +4,17 @@
  *
  *   <script src="sungtales-player.js"
  *           data-sync="URL of data/sync/<slug>.json"
- *           data-audio="MP3 URL"></script>
+ *           data-audio="MP3 URL"
+ *           data-stream="constant-bitrate copy (optional)"></script>
+ *
+ * data-audio is the original recording: Download gives that file, and the
+ * sync JSON names it. data-stream, when set, is what the player plays: a
+ * constant-bitrate (CBR) copy of the same recording with the same timeline.
+ * Browsers jump inside a variable-bitrate MP3 by estimate, so after a jump
+ * (verse ▶, tapping a verse, the seek bar, a shared link) the sound can be
+ * seconds away from the time they report, and the highlight runs a line or
+ * two off. In a CBR file the jump is exact. Measured in Chromium on the
+ * Telima original: 3 s off at 9:33; the CBR copy 0.00 s (2026-11-11).
  *
  * It rearranges the existing Webflow story markup
  * (.w-tab-pane "Ku Waru" / "English" → .line → .line-number,
@@ -63,12 +73,17 @@
   var ICON_PAUSE = icon('<path d="M6.5 5h4v14h-4zM13.5 5h4v14h-4z"/>', true);
   var ICON_REPEAT = icon('<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>', false);
   var ICON_DOWNLOAD = icon('<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>', false);
+  // The usual "share" symbol (arrow out of a box) instead of the word,
+  // which drew too much attention on every verse (Camila, 2026-11-11).
+  var ICON_SHARE = icon('<path d="M12 15V3"/><path d="M7.5 7.5 12 3l4.5 4.5"/><path d="M8 11H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-2"/>', false);
+  var ICON_CHECK = icon('<path d="M5 12.5l4.5 4.5L19 7.5"/>', false);
 
   function onReady() {
     var script = scriptEl || document.querySelector("script[data-sync]");
     if (!script) return;
     var syncUrl = script.getAttribute("data-sync");
     var audioUrl = script.getAttribute("data-audio");
+    var streamUrl = script.getAttribute("data-stream") || audioUrl;
     if (!syncUrl || !audioUrl) {
       console.warn("Sung Tales player: data-sync and data-audio are required.");
       return;
@@ -79,7 +94,7 @@
       console.warn("Sung Tales player: Ku Waru and English tabs were not found.");
       return;
     }
-    build(panes, syncUrl, audioUrl);
+    build(panes, syncUrl, audioUrl, streamUrl);
   }
 
   if (document.readyState === "loading") {
@@ -173,7 +188,7 @@
     return node;
   }
 
-  function build(panes, syncUrl, audioUrl) {
+  function build(panes, syncUrl, audioUrl, streamUrl) {
     var params = new URLSearchParams(location.search);
     var reviewOn = params.get("review") === "1";
     var shareParam = params.get("v");
@@ -273,8 +288,11 @@
       var enLine = enVerses.get(n) || null;
       if (kuLine) kuCol.appendChild(kuLine);
       if (enLine) enCol.appendChild(enLine);
-      var share = el("a", "st-share", "share");
+      var share = el("a", "st-share");
+      share.innerHTML = ICON_SHARE;
+      share.setAttribute("role", "button");
       share.setAttribute("aria-label", "Copy link to verse " + n);
+      share.title = "Copy link to this verse";
       var meta = el("div", "st-meta");
       row.appendChild(play);
       row.appendChild(kuCol);
@@ -367,7 +385,7 @@
     audio.setAttribute("playsinline", "");
     audio.setAttribute("webkit-playsinline", "");
     audio.preload = "metadata";
-    audio.src = audioUrl;
+    audio.src = streamUrl;
     document.body.appendChild(audio);
 
     var dock = el("div", "st-dock");
@@ -474,6 +492,14 @@
     continueButton.setAttribute("translate", "no");
     var statusEl = el("p", "st-status", "");
     statusEl.setAttribute("role", "status");
+    // Screen readers hear "Link to verse 12 copied"; sighted readers see the
+    // share icon turn into a check mark.
+    var liveEl = el("span", "st-sr");
+    liveEl.setAttribute("aria-live", "polite");
+    function announce(text) {
+      liveEl.textContent = "";
+      setTimeout(function () { liveEl.textContent = text; }, 60);
+    }
     bar.appendChild(playButton);
     bar.appendChild(seek);
     bar.appendChild(timeEl);
@@ -481,6 +507,7 @@
     bar.appendChild(download);
     bar.appendChild(continueButton);
     bar.appendChild(statusEl);
+    bar.appendChild(liveEl);
     dock.appendChild(review);
     dock.appendChild(bar);
     head.appendChild(dock);
@@ -588,6 +615,14 @@
       scheduleBoundary();
     });
     audio.addEventListener("error", function () {
+      // If the constant-bitrate copy is missing, play the original rather
+      // than nothing (jumps are then approximate again).
+      if (streamUrl !== audioUrl && audio.getAttribute("src") === streamUrl) {
+        console.warn("Sung Tales player: data-stream didn't load; playing data-audio.");
+        audio.src = audioUrl;
+        audio.load();
+        return;
+      }
       statusEl.textContent = "The audio file didn\u2019t load.";
     });
 
@@ -1258,11 +1293,14 @@
       history.replaceState(null, "", url.pathname + url.search);
       refreshShareHrefs();
       copyText(url.toString()).then(function () {
+        clearTimeout(link.__stCopied);
         link.classList.add("is-copied");
-        var label = link.textContent;
-        link.textContent = "copied";
-        setTimeout(function () {
-          link.textContent = label;
+        link.innerHTML = ICON_CHECK;
+        link.title = "Link copied";
+        announce("Link to verse " + n + " copied");
+        link.__stCopied = setTimeout(function () {
+          link.innerHTML = ICON_SHARE;
+          link.title = "Copy link to this verse";
           link.classList.remove("is-copied");
         }, 1400);
       });
