@@ -1,0 +1,98 @@
+/* Sung Tales: audio sync for figures in the Introduction (see sungtales-figures.js). */
+
+.st-fig {
+  position: relative;
+  width: 100%;
+  line-height: 0;
+  isolation: isolate;
+}
+
+.st-fig > img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.st-fig-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.st-fig-hit {
+  position: absolute;
+  border-radius: 4px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .st-fig-hit:hover { box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.18); }
+}
+
+/* The moving highlight: one box that slides from line to line. */
+.st-fig-hl {
+  position: absolute;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s, left 0.18s ease-out, top 0.18s ease-out, width 0.18s ease-out, height 0.18s ease-out;
+}
+
+.st-fig-hl.st-fig-jump { transition: none; }
+.st-fig-hl.is-on { opacity: 1; }
+
+/* On white (Text 4, Figure 3): the yellow of the story pages, under the ink. */
+.st-fig[data-highlight="fill"] .st-fig-hl {
+  background: var(--main-yellow, #ffea6b);
+  mix-blend-mode: multiply;
+}
+
+/* Figure 1 is already yellow: a dark frame round the row instead. */
+.st-fig[data-highlight="outline"] .st-fig-hl {
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 3px #111;
+}
+
+.st-fig-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 4px;
+  margin-top: 6px;
+  font-family: "Hankengrotesk Variablefont Wght", sans-serif;
+  font-size: 1em;
+  line-height: 1.35;
+}
+
+.st-fig-play {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #000;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.st-fig-play:hover { background: #333; }
+.st-fig-play:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+.st-fig-play .st-icon { width: 20px; height: 20px; }
+.st-fig-play:not(.is-playing) .st-icon { margin-left: 3px; }
+
+.st-fig-now {
+  color: #666;
+  font-variant-numeric: tabular-nums;
+}
+
+.st-fig-audio { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .st-fig-hl { transition: none; }
+}

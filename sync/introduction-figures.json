@@ -1,0 +1,66 @@
+{
+  "about": "Audio sync for three images in the Introduction (Alan, 2026-11-17). Each line's box is [left, top, width, height] in pixels of the image file named in 'image'. The timings are not here: the player reads them from the story's own sync file ('sync'), so fixing a verse with ?review=1 on the story page also fixes it here. If an image is replaced in Webflow, its boxes have to be measured again on the new file.",
+  "figures": [
+    {
+      "id": "figure-1",
+      "image": "Tables_ST4.png",
+      "size": [4217, 2059],
+      "sync": "the-story-of-ambukl-konts-and-ayamb-tangapa-by-paulus-konts.json",
+      "audio": "../audio/Konts%20-%20Konts%20%26%20Tangapa.mp3",
+      "label": "Listen to lines 3–10 (Paulus Konts)",
+      "highlight": "outline",
+      "lines": [
+        { "n": 3, "box": [0, 0, 4217, 229] },
+        { "n": 4, "box": [0, 232, 4217, 226] },
+        { "n": 5, "box": [0, 461, 4217, 227] },
+        { "n": 6, "box": [0, 691, 4217, 455] },
+        { "n": 7, "box": [0, 1149, 4217, 226] },
+        { "n": 8, "box": [0, 1378, 4217, 226] },
+        { "n": 9, "box": [0, 1607, 4217, 226] },
+        { "n": 10, "box": [0, 1836, 4217, 223] }
+      ]
+    },
+    {
+      "id": "text-4",
+      "image": "Tables_ST6.png",
+      "size": [4217, 2075],
+      "sync": "story-of-a-small-boy-by-kopia-noma.json",
+      "audio": "../audio-player/Noma%20-%20Small%20boy.mp3",
+      "label": "Listen to lines 1–10 (Kopia Noma)",
+      "highlight": "fill",
+      "lines": [
+        { "n": 1, "box": [190, 39, 1610, 176] },
+        { "n": 2, "box": [190, 245, 1610, 176] },
+        { "n": 3, "box": [190, 452, 1610, 176] },
+        { "n": 4, "box": [190, 658, 1610, 176] },
+        { "n": 5, "box": [190, 864, 1610, 176] },
+        { "n": 6, "box": [190, 1070, 1610, 176] },
+        { "n": 7, "box": [190, 1276, 1610, 177] },
+        { "n": 8, "box": [190, 1482, 1610, 177] },
+        { "n": 9, "box": [190, 1688, 1610, 177] },
+        { "n": 10, "box": [190, 1895, 1610, 176] }
+      ]
+    },
+    {
+      "id": "figure-3",
+      "image": "figure 3.jpeg",
+      "size": [1600, 1197],
+      "sync": "story-of-a-small-boy-by-kopia-noma.json",
+      "audio": "../audio-player/Noma%20-%20Small%20boy.mp3",
+      "label": "Listen to lines 1–10 (Kopia Noma)",
+      "highlight": "fill",
+      "lines": [
+        { "n": 1, "box": [37, 80, 694, 177] },
+        { "n": 2, "box": [37, 306, 694, 177] },
+        { "n": 3, "box": [37, 532, 694, 178] },
+        { "n": 4, "box": [37, 761, 694, 177] },
+        { "n": 5, "box": [37, 987, 694, 177] },
+        { "n": 6, "box": [757, 80, 697, 177] },
+        { "n": 7, "box": [757, 306, 697, 177] },
+        { "n": 8, "box": [757, 532, 697, 178] },
+        { "n": 9, "box": [757, 761, 697, 177] },
+        { "n": 10, "box": [757, 987, 697, 177] }
+      ]
+    }
+  ]
+}
