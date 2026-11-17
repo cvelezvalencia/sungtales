@@ -1,6 +1,6 @@
 # audio-player
 
-Copies of four recordings in `audio/`, made only for the player on the story pages. The originals in `audio/` are unchanged, and **Download** on the site still gives the original.
+Copies of four recordings in `audio/`, made only for the player on the story pages. The originals in `audio/` are unchanged. The site has no Download button (since 2026-11-17: the authors have not given permission to make the recordings downloadable).
 
 Why: the originals are variable-bitrate (VBR) MP3s. In a VBR file a browser can only estimate where a given second is, so after a jump (▶ on a verse, tapping a verse, the progress bar, a shared verse link) the sound can be several seconds away from the time it reports, and the highlight runs a line or more off. Measured in Chrome-based Edge on 2026-11-11, jumping in the originals landed 1.9 s (Forest Man) to 9 s (Kupi) away from the reported time. In these constant-bitrate (CBR) copies the jump is exact (0.00 s).
 

@@ -7,8 +7,9 @@
  *           data-audio="MP3 URL"
  *           data-stream="constant-bitrate copy (optional)"></script>
  *
- * data-audio is the original recording: Download gives that file, and the
- * sync JSON names it. data-stream, when set, is what the player plays: a
+ * data-audio is the original recording; the sync JSON names it. There is no
+ * Download button (no permission from the authors, 2026-11-17).
+ * data-stream, when set, is what the player plays: a
  * constant-bitrate (CBR) copy of the same recording with the same timeline.
  * Browsers jump inside a variable-bitrate MP3 by estimate, so after a jump
  * (verse ▶, tapping a verse, the seek bar, a shared link) the sound can be
@@ -72,7 +73,6 @@
   var ICON_PLAY = icon('<path d="M8 5.2v13.6L19 12z"/>', true);
   var ICON_PAUSE = icon('<path d="M6.5 5h4v14h-4zM13.5 5h4v14h-4z"/>', true);
   var ICON_REPEAT = icon('<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>', false);
-  var ICON_DOWNLOAD = icon('<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>', false);
   // The usual "share" symbol (arrow out of a box) instead of the word,
   // which drew too much attention on every verse (Camila, 2026-11-11).
   var ICON_SHARE = icon('<path d="M12 15V3"/><path d="M7.5 7.5 12 3l4.5 4.5"/><path d="M8 11H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-2"/>', false);
@@ -288,12 +288,19 @@
       var enLine = enVerses.get(n) || null;
       if (kuLine) kuCol.appendChild(kuLine);
       if (enLine) enCol.appendChild(enLine);
+      // A copy of the verse number for the phone layout of Both, where it
+      // sits above ▶ instead of beside the Ku Waru text (Alan, 2026-11-17).
+      // Hidden everywhere else; the original .line-number is untouched.
+      var numSource = (kuLine && kuLine.querySelector(".line-number")) || (enLine && enLine.querySelector(".line-number"));
+      var num = el("span", "st-num paragraph-18px-regular", numSource ? numSource.textContent.trim() : n + ".");
+      num.setAttribute("translate", "no");
       var share = el("a", "st-share");
       share.innerHTML = ICON_SHARE;
       share.setAttribute("role", "button");
       share.setAttribute("aria-label", "Copy link to verse " + n);
       share.title = "Copy link to this verse";
       var meta = el("div", "st-meta");
+      row.appendChild(num);
       row.appendChild(play);
       row.appendChild(kuCol);
       row.appendChild(enCol);
@@ -449,43 +456,8 @@
     repeatButton.title = "Repeat verse";
     repeatButton.setAttribute("aria-label", "Repeat verse");
     repeatButton.setAttribute("aria-pressed", "false");
-    var download = el("a", "st-download");
-    download.innerHTML = ICON_DOWNLOAD + '<span class="st-btn-text">Download</span>';
-    download.title = "Download the audio";
-    download.setAttribute("aria-label", "Download the audio");
-    var downloadText = download.querySelector(".st-btn-text");
-    download.href = audioUrl;
-    download.setAttribute("download", fileName(audioUrl));
-    // The audio is on another site (GitHub Pages), where browsers ignore the
-    // download attribute and open the file over the story page. Fetch it and
-    // save it instead. If that fails, open it in a new tab so the page stays.
-    download.target = "_blank";
-    download.rel = "noopener";
-    download.addEventListener("click", function (event) {
-      if (!window.fetch || event.metaKey || event.ctrlKey || event.shiftKey) return;
-      event.preventDefault();
-      if (download.getAttribute("aria-busy") === "true") return;
-      download.setAttribute("aria-busy", "true");
-      downloadText.textContent = "Downloading…";
-      fetch(audioUrl).then(function (response) {
-        if (!response.ok) throw new Error("HTTP " + response.status);
-        return response.blob();
-      }).then(function (blob) {
-        var url = URL.createObjectURL(blob);
-        var saver = document.createElement("a");
-        saver.href = url;
-        saver.download = fileName(audioUrl);
-        document.body.appendChild(saver);
-        saver.click();
-        saver.remove();
-        setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
-      }).catch(function () {
-        window.open(audioUrl, "_blank", "noopener");
-      }).then(function () {
-        download.removeAttribute("aria-busy");
-        downloadText.textContent = "Download";
-      });
-    });
+    // No Download button: the authors have not given permission to make the
+    // recordings downloadable (Alan, 2026-11-17).
     var continueButton = el("button", "st-continue", "Keep listening");
     continueButton.type = "button";
     continueButton.hidden = true;
@@ -504,7 +476,6 @@
     bar.appendChild(seek);
     bar.appendChild(timeEl);
     bar.appendChild(repeatButton);
-    bar.appendChild(download);
     bar.appendChild(continueButton);
     bar.appendChild(statusEl);
     bar.appendChild(liveEl);

@@ -86,6 +86,7 @@
 }
 
 .st-verse-play { grid-column: 1; grid-row: 1; }
+.st-num { display: none; }
 .st-ku { grid-column: 2; grid-row: 1; }
 .st-en { grid-column: 3; grid-row: 1; }
 .st-share { grid-column: 4; grid-row: 1; }
@@ -434,15 +435,13 @@ html.st-review-on .st-row.st-editing {
 .st-bar .st-play .st-icon { width: 22px; height: 22px; }
 .st-bar .st-play[aria-label="Play"] .st-icon { margin-left: 3px; }
 
-.st-bar .st-repeat,
-.st-download {
+.st-bar .st-repeat {
   display: inline-flex;
   align-items: center;
   gap: 7px;
 }
 
-.st-bar .st-repeat .st-icon,
-.st-download .st-icon { width: 18px; height: 18px; }
+.st-bar .st-repeat .st-icon { width: 18px; height: 18px; }
 
 .st-seek {
   flex: 1 1 140px;
@@ -472,15 +471,6 @@ html.st-review-on .st-row.st-editing {
   outline: 2px solid #111;
   outline-offset: 1px;
 }
-
-.st-download {
-  min-height: 44px;
-  color: #111;
-  font-size: 0.95rem;
-  text-decoration: none;
-}
-
-.st-download:hover .st-btn-text { text-decoration: underline; }
 
 .st-status {
   flex-basis: 100%;
@@ -527,6 +517,35 @@ html.st-review-on .st-row.st-editing {
 
   .st-layout[data-view="both"] .st-en { color: #666; }
 
+  /* Both on phones: the verse number sits above ▶, so the Ku Waru and the
+     English lines start at the same left edge (Alan, 2026-11-17). */
+  .st-layout[data-view="both"] .st-num {
+    display: flex;              /* flex centring: a 4-digit number spills */
+    justify-content: center;    /* evenly on both sides of ▶, not into the text */
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: start;
+    width: 100%;
+    margin: 0;
+    padding-top: 2px;
+    white-space: nowrap;
+  }
+  .st-layout[data-view="both"] .st-verse-play { margin-top: 30px; justify-self: center; }
+  .st-layout[data-view="both"] .st-ku .line-number { display: none; }
+
+  /* Both on phones: an English line with a note keeps the English look
+     (grey, like the other English lines; Webflow's dropdown made it black)
+     and its "i" stays beside the words instead of on a line of its own. */
+  .st-layout[data-view="both"] .st-en .w-dropdown-toggle { color: inherit; }
+  .st-layout[data-view="both"] .st-en .info-icon-text { color: #222; }
+  .st-layout[data-view="both"] .st-en .line-content {
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    column-gap: 10px;
+  }
+  .st-layout[data-view="both"] .st-en .line-content > .line-text { flex: 0 1 auto; min-width: 0; }
+  .st-layout[data-view="both"] .st-en .line-content > .line-info-icon { flex: none; margin-top: 4px; }
+
   .st-label-row,
   .st-layout[data-view="ku"] .st-label-row,
   .st-layout[data-view="en"] .st-label-row {
@@ -548,8 +567,8 @@ html.st-review-on .st-row.st-editing {
   .st-toolbar button { font-size: 1.15rem; }
 }
 
-/* Narrow phones: one row for the player. Repeat and Download show only
-   their icons (their names stay as labels for screen readers). */
+/* Narrow phones: one row for the player. Repeat shows only its icon (its
+   name stays as a label for screen readers). */
 @media (max-width: 560px) {
   .st-bar { flex-wrap: nowrap; gap: 8px; padding: 4px 0 8px; }
   .st-bar .st-play { width: 44px; height: 44px; min-height: 44px; }
@@ -557,8 +576,7 @@ html.st-review-on .st-row.st-editing {
   .st-seek { flex: 1 1 auto; min-width: 60px; }
   .st-time { min-width: 0; font-size: 0.85rem; white-space: nowrap; }
   .st-btn-text { display: none; }
-  .st-bar .st-repeat,
-  .st-download {
+  .st-bar .st-repeat {
     flex: none;
     justify-content: center;
     width: 40px;
@@ -566,7 +584,6 @@ html.st-review-on .st-row.st-editing {
     padding: 0;
     border-radius: 50%;
   }
-  .st-download { border: 1px solid #111; box-sizing: border-box; height: 40px; }
   .st-bar .st-continue,
   .st-status { flex: none; }
   .st-bar:has(.st-continue:not([hidden])),
