@@ -4,7 +4,7 @@
  * Figure 1 (a table: 8 rows = Konts lines 3-10), Text 4 (10 lines = Small Boy
  * lines 1-10) and Figure 3 (a score: 10 measures = Small Boy lines 1-10) are
  * images. This script finds each image by its file name, lays line areas over
- * it and adds a play button below it. While the song plays, a highlight moves
+ * it and adds a play button below its caption. While the song plays, a highlight moves
  * to the line being sung; tapping a line plays from there; playback stops at
  * the end of the last line.
  *
@@ -144,7 +144,12 @@
     bar.appendChild(button);
     bar.appendChild(label);
     bar.appendChild(nowEl);
-    wrap.parentNode.insertBefore(bar, wrap.nextSibling);
+    // Below the figure's caption (Camila, 2026-11-19), or below the image if
+    // it has none.
+    var after = wrap;
+    var next = wrap.nextElementSibling;
+    if (next && next.classList.contains("caption")) after = next;
+    after.parentNode.insertBefore(bar, after.nextSibling);
     button.addEventListener("click", function () { toggle(fig); });
 
     fig.button = button;
