@@ -53,16 +53,37 @@
   box-shadow: inset 0 0 0 3px #111;
 }
 
+/* The play button and its "Listen to lines ..." label sit in one framed box
+   (Camila, 2026-11-23), and a click anywhere in it plays or pauses. */
 .st-fig-bar {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   column-gap: 12px;
   row-gap: 4px;
-  margin-top: 6px;
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 12px;
+  padding: 6px 22px 6px 6px;
+  border: 1px solid #000;
+  border-radius: 28px;
   font-family: "Hankengrotesk Variablefont Wght", sans-serif;
   font-size: 1em;
   line-height: 1.35;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .st-fig-bar:hover { background: var(--main-yellow, #ffea6b); }
+}
+
+/* Phones: "Line 5" would not fit beside the label; the highlight on the
+   image already shows the line. */
+@media (max-width: 479px) {
+  .st-fig-now { display: none; }
 }
 
 .st-fig-play {

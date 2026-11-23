@@ -151,6 +151,10 @@
     if (next && next.classList.contains("caption")) after = next;
     after.parentNode.insertBefore(bar, after.nextSibling);
     button.addEventListener("click", function () { toggle(fig); });
+    // The whole framed box works like the button (Camila, 2026-11-23).
+    bar.addEventListener("click", function (e) {
+      if (!button.contains(e.target)) toggle(fig);
+    });
 
     fig.button = button;
     fig.label = label;
